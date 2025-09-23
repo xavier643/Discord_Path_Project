@@ -1,0 +1,122 @@
+# Discord Project — Project Plan
+
+## 1. Overview
+A web app + Discord bot that share one **MongoDB**.
+
+- Users log in via **Discord OAuth2**.
+- Backend issues its own **JWT** for frontend use.
+- A separate bot process ties into the same DB.
+- Both web and bot log actions into common collections.
+
+---
+
+## 2. Tech Stack
+- **Frontend**: React (with Apollo Client)
+- **Backend**: Flask + Ariadne (GraphQL) + REST routes for OAuth
+- **Database**: MongoDB (Atlas or local)
+- **Bot**: Python `discord.py` worker
+- **Auth**: Discord OAuth2 → backend mints JWTs
+- **Deployment**: Similar to personal project (frontend on Vercel or similar, backend on Fly/Heroku, DB on Atlas)
+
+---
+
+## 3. Core Collections
+- **users** → Discord info + app roles (`discord_id`, `username`, `roles`, `active`, `last_active`)
+- **sessions** → access/refresh tokens, TTL-based expiry
+- **guilds** → Discord servers the bot is in
+- **bot_guild_config** → per-guild config (channels, roles, toggles)
+- **audit_log** → actions by web or bot
+- **security_risk** → risk events (e.g., `RESET_FLOOD`, `ROLE_DENIED`)
+
+---
+
+## 4. Auth Flow
+### Login
+1. Frontend calls `/api/auth/discord/login`
+2. Redirect to Discord OAuth authorize URL
+3. Discord redirects back with `code`
+4. Backend exchanges `code` for tokens, calls `/users/@me`, upserts `users`
+5. Backend mints **JWT** (access + refresh), returns to frontend
+6. Frontend stores JWT and uses Apollo for queries
+
+### Optional Gate
+- Restrict sign-ups to members of specific guild(s) using `/users/@me/guilds`.
+
+---
+
+## 5. Bot Integration
+- Bot connects to the same MongoDB
+- Reads/writes `bot_guild_config`, `audit_log`
+- Can call backend API with a service token if needed
+- Handles events like `guild_join`, slash commands, and member actions
+
+---
+
+## 6. Frontend Features
+- Login with Discord
+- Dashboard: show user info + guilds
+- Guild Settings: configure channels, roles, feature toggles
+- Audit Log viewer (per guild)
+- “Add Bot” button → Discord invite link (`bot applications.commands` scope)
+
+---
+
+## 7. GraphQL Schema (conceptual)
+```graphql
+type Query {
+  me: Me
+  myGuilds: [Guild!]!
+  guildConfig(guildId: ID!): BotGuildConfig
+  auditLog(guildId: ID!, limit: Int = 50): [AuditEntry!]!
+}
+
+type Mutation {
+  updateGuildConfig(guildId: ID!, input: GuildConfigInput!): BotGuildConfig
+  logAction(input: LogActionInput!): Boolean
+  adminSetUserActive(userId: ID!, active: Boolean!): Boolean
+}
+```
+
+---
+
+## 8. Minimal REST Endpoints
+- `GET /api/auth/discord/login` → redirect to Discord OAuth authorize URL
+- `GET /api/auth/discord/callback` → exchange `code`, mint JWT, redirect to frontend
+- `POST /api/auth/logout` → end session
+- `POST /api/auth/refresh` → issue new access token
+
+---
+
+## 9. Security
+- Short-lived JWT access tokens + refresh with TTL
+- Sessions collection with hashed IP + user-agent
+- Map Discord roles → app roles
+- Rate limits + logging into `security_risk`
+- Avoid storing Discord email unless required
+- Environment variables:
+  - `DISCORD_CLIENT_ID`
+  - `DISCORD_CLIENT_SECRET`
+  - `DISCORD_BOT_TOKEN`
+  - `JWT_SECRET`
+  - `MONGO_URL`
+
+---
+
+## 10. Development Milestones
+
+### MVP
+- [ ] OAuth login works, JWT issued
+- [ ] `me` query returns logged-in user
+- [ ] Bot joins a guild, writes to `guilds` + `audit_log`
+
+### V1
+- [ ] Restrict by guild membership
+- [ ] Guild settings saved via GraphQL
+- [ ] Slash command to fetch config
+- [ ] Basic rate limiting + audit log viewer
+
+### V1.1 (future ideas)
+- [ ] Background jobs / retries
+- [ ] Per-guild feature flags + role mapping
+- [ ] Audit log UI filters + export
+
