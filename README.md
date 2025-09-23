@@ -1,6 +1,15 @@
-# Discord_Path_Project
-Personal project to see about creating a discord bot and web app linked
+# Discord Path Project
 
+## Overview
+A web app + Discord bot that share one **MongoDB**.
+
+- Users log in with **Discord OAuth2**.
+- Backend issues **JWTs** for frontend sessions.
+- Discord bot connects to the same MongoDB and syncs with backend state.
+
+---
+
+## Repo Structure
 Discord_Path_Project/
 │
 ├─ client/                # Frontend (React + Apollo Client)
