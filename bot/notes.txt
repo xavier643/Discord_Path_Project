@@ -1,0 +1,2 @@
+to enter venv for testing use following in terminal
+venv\Scripts\activate
