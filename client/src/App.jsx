@@ -1,19 +1,24 @@
-import { Link, Route, Routes } from "react-router-dom";
-import Home from "./pages/Home.jsx";
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Login.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import RequireAuth from "./components/RequireAuth.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
 export default function App() {
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", padding: 16 }}>
-      <header style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-        <Link to="/">Home</Link>
-        <a href="/health">/health (static)</a>
-      </header>
-
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </div>
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/login" element={<Login />} />
+      <Route
+        path="/dashboard"
+        element={
+          <RequireAuth>
+            <Dashboard />
+          </RequireAuth>
+        }
+      />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
