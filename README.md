@@ -1,117 +1,121 @@
 # Discord Path Project
 
-## Overview
-A web app + Discord bot that share one **MongoDB**.
+Minimal full-stack template for a Discord-authenticated web app.
 
-- Users log in with **Discord OAuth2**.
-- Backend issues **JWTs** for frontend sessions.
-- Discord bot connects to the same MongoDB and syncs with backend state.
+- Frontend: Vite + React + React Router
+- Backend: Flask (Discord OAuth, session auth, CORS)
+- DB: MongoDB (optional; currently skipped in dev)
+- Auth: Only users who share a guild with your bot are allowed
+- Deploy: API on Fly.io, frontend on any static host (Vercel/Netlify/etc.)
 
----
+## Current Status (2025-10)
+
+- Discord login works (identify + guilds).
+- /me returns { user, authorized_guilds } (only guilds shared with the bot).
+- Local dev: React on 3000, API on 5000; Vite proxy in dev.
+- “invalid_state” fixed by using the same host for login + callback (localhost↔localhost or 127.0.0.1↔127.0.0.1).
+- Mongo is disabled by default in dev via SKIP_MONGO=1.
+- Next: enable Mongo writes, add GraphQL endpoint, migrate frontend to Apollo Client.
 
 ## Repo Structure
-    Discord_Path_Project/
-    ├─ client/                # Frontend (React + Apollo Client)
-    │   ├─ public/            # Static assets
-    │   ├─ src/               # React source code
-    │   │   ├─ apollo/        # Apollo client setup
-    │   │   ├─ components/    # Reusable components
-    │   │   ├─ pages/         # Page-level views (Login, Dashboard, Guilds)
-    │   │   ├─ styles/        # CSS or SCSS (if not using CSS-in-JS)
-    │   │   └─ index.js
-    │   └─ package.json
-    │
-    ├─ server/                # Backend (Flask + Ariadne)
-    │   ├─ services/          # Feature-based modules
-    │   │   ├─ auth/          # Discord OAuth, JWT handling
-    │   │   ├─ users/         # User resolvers & models
-    │   │   ├─ guilds/        # Guild resolvers & models
-    │   │   └─ security/      # Logging, risk collection
-    │   ├─ schema/            # GraphQL typeDefs & resolvers
-    │   ├─ routes/            # REST endpoints (auth/login, callback, etc.)
-    │   ├─ config.py          # Settings (env vars)
-    │   ├─ app.py             # Flask entrypoint
-    │   ├─ requirements.txt
-    │   └─ manage.py          # CLI helper (init db, runserver, etc.)
-    │
-    ├─ bot/                   # Discord.py bot worker
-    │   ├─ cogs/              # Bot commands & events (organized by feature)
-    │   ├─ utils/             # Shared helpers (db connection, logging)
-    │   ├─ main.py            # Bot entrypoint
-    │   └─ requirements.txt
-    │
-    ├─ .gitignore
-    ├─ LICENSE
-    ├─ PROJECT_PLAN.md
-    └─ README.md
 
----
-
-## Setup
-
-### Prerequisites
-- Node.js (latest LTS)
-- Python 3.12+
-- MongoDB Atlas (or local)
-- Discord Developer App (client ID/secret + bot token)
-
----
-
-### 1. Frontend (client)
-    cd client
-    npm install
-    npm run dev
-Runs React frontend at http://localhost:5173.
-
----
-
-### 2. Backend (server)
-    cd server
-    python -m venv venv
-    # On Linux/macOS:
-    source venv/bin/activate
-    # On Windows:
-    venv\Scripts\activate
-
-    pip install -r requirements.txt
-    python app.py
-Runs Flask backend at http://localhost:5000.
-
----
-
-### 3. Bot (bot)
-    cd bot
-    python -m venv venv
-    # On Linux/macOS:
-    source venv/bin/activate
-    # On Windows:
-    venv\Scripts\activate
-
-    pip install -r requirements.txt
-    python main.py
-Runs the Discord bot with your bot token.
-
----
+Discord_Path_Project/
+├─ client/
+│ ├─ index.html
+│ └─ src/
+│ ├─ main.jsx
+│ ├─ App.jsx
+│ ├─ components/
+│ │ └─ RequireAuth.jsx
+│ ├─ pages/
+│ │ ├─ Login.jsx
+│ │ ├─ Dashboard.jsx
+│ │ └─ NotFound.jsx
+│ └─ lib/
+│ └─ api.js
+│ ├─ vite.config.js
+│ ├─ .env.development
+│ └─ .env.production
+│
+└─ server/
+├─ app.py
+├─ auth_discord.py
+├─ routes/
+│ └─ me.py
+├─ db.py
+├─ requirements.txt
+├─ Dockerfile
+├─ fly.toml
+└─ .env
 
 ## Environment Variables
-Create a `.env` file in both **server/** and **bot/**:
 
-    MONGO_URL=mongodb+srv://...
-    JWT_SECRET=your_jwt_secret
-    DISCORD_CLIENT_ID=...
-    DISCORD_CLIENT_SECRET=...
-    DISCORD_BOT_TOKEN=...
+### Backend (server/.env)
 
----
+PORT=5000
+SESSION_SECRET=<random>
+ALLOWED_ORIGIN=http://localhost:3000
+POST_LOGIN_REDIRECT=http://localhost:3000
+DISCORD_CLIENT_ID=<Application ID>
+DISCORD_CLIENT_SECRET=<Client Secret>
+DISCORD_BOT_TOKEN=<Bot Token>
+DISCORD_REDIRECT_URI=http://localhost:5000/auth/discord/callback
+SKIP_MONGO=1
 
-## Roadmap
-- [ ] Implement Discord OAuth login
-- [ ] Issue JWTs & secure sessions
-- [ ] Bot joins guilds & syncs to Mongo
-- [ ] Web UI for guild settings
-- [ ] Audit logging
+MONGO_URL=...
+MONGO_DB=discord_path
 
----
+### Frontend
 
-## License
-MIT
+client/.env.development
+VITE_API_BASE=
+
+client/.env.production
+VITE_API_BASE=https://<your-api-app>.fly.dev
+
+## Discord Developer Portal Setup
+
+1. OAuth2 → General → Redirects:
+
+- http://localhost:5000/auth/discord/callback
+- https://<your-api-app>.fly.dev/auth/discord/callback
+
+2. Use Application ID as DISCORD_CLIENT_ID.
+3. Generate Client Secret → DISCORD_CLIENT_SECRET.
+4. Bot → Reset Token → DISCORD_BOT_TOKEN.
+
+## Running Locally
+
+API
+
+- cd server
+- python -m venv venv
+- venv/Scripts/pip install -r requirements.txt
+- venv/Scripts/python app.py
+
+## Frontend
+
+- cd client
+- npm install
+- npm run dev
+
+## Deploy
+
+API (Fly)
+
+- cd server
+- type .env | fly secrets import
+- fly deploy
+
+Frontend
+
+- cd client
+- npm run build
+- deploy dist/ to your static host
+
+## API Endpoints
+
+- GET /auth/discord/login
+- GET /auth/discord/callback
+- GET /me
+- POST /logout
