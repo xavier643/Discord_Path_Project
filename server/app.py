@@ -26,10 +26,12 @@ def create_app():
 
 app = create_app()
 
+env = os.getenv("ENV", "").lower()
+
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="None" if os.getenv("ENV") == "prod" else "Lax",
-    SESSION_COOKIE_SECURE=os.getenv("ENV", "dev") == "prod"  # True in prod (https)
+    SESSION_COOKIE_SAMESITE="None" if env == "prod" else "Lax",
+    SESSION_COOKIE_SECURE=(env == "prod")
 )
 
 if __name__ == "__main__":
