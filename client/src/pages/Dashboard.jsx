@@ -12,9 +12,13 @@ export default function Dashboard({ me }) {
       </div>
       <p>Servers using this bot that you are a member of:</p>
       <ul>
-        {(me.authorized_guilds ?? []).map((g) => (
-          <li key={g.id}>{g.name}</li>
-        ))}
+        <ul>
+          {(me.authorized_guilds ?? []).length > 0 ? (
+            me.authorized_guilds.map((g) => <li key={g.id}>{g.name}</li>)
+          ) : (
+            <li>No authorized guilds</li>
+          )}
+        </ul>
       </ul>
     </div>
   );
