@@ -28,7 +28,7 @@ app = create_app()
 
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SAMESITE="None" if os.getenv("ENV") == "prod" else "Lax",
     SESSION_COOKIE_SECURE=os.getenv("ENV", "dev") == "prod"  # True in prod (https)
 )
 
