@@ -6,7 +6,7 @@ import base64
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 import requests
-from flask import Blueprint, session, request, redirect, jsonify
+from flask import Blueprint, session, request, redirect, jsonify, current_app, make_response
 from db import users_col
 from functools import wraps
 from db import users_col
@@ -26,26 +26,34 @@ def cfg():
     }
 
 
+def _user_token(code: str):
+    r = requests.post(
+        "https://discord.com/api/v10/oauth2/token",
+        data={
+            "client_id": cfg()["DISCORD_CLIENT_ID"],
+            "client_secret": cfg()["DISCORD_CLIENT_SECRET"],
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": cfg()["DISCORD_REDIRECT_URI"],  # MUST match auth step exactly
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        timeout=10,
+    )
+    if r.status_code != 200:
+        current_app.logger.error(
+            "discord token exchange failed",
+            extra={"status": r.status_code, "body": r.text[:500]},
+        )
+        return None
+    return r.json()
+
+
 def _bot_guild_ids():
     C = cfg()
     h = {"Authorization": f"Bot {C['DISCORD_BOT_TOKEN']}"}
     r = requests.get(f"{API}/users/@me/guilds", headers=h, timeout=15)
     r.raise_for_status()
     return {g["id"] for g in r.json()}
-
-
-def _user_token(code: str):
-    C = cfg()
-    data = {
-        "client_id": C['DISCORD_CLIENT_ID'],
-        "client_secret": C['DISCORD_CLIENT_SECRET'],
-        "grant_type": "authorization_code",
-        "code": code,
-        "redirect_uri": C['DISCORD_REDIRECT_URI'],
-    }
-    r = requests.post(f"{API}/oauth2/token", data=data, timeout=15)
-    r.raise_for_status()
-    return r.json()
 
 
 def _me(token: str):
@@ -98,43 +106,70 @@ def login():
 
 @bp.get("/auth/discord/callback")
 def callback():
+    # 1) validate and CONSUME state
     if request.args.get("state") != session.get("oauth_state"):
+        current_app.logger.warning("oauth_state mismatch", extra={"got": request.args.get("state"), "expected": session.get("oauth_state")})
         return jsonify({"error": "invalid_state"}), 400
+    session.pop("oauth_state", None)  # important: consume
+
     code = request.args.get("code")
     if not code:
         return jsonify({"error": "missing_code"}), 400
 
-    tok = _user_token(code)
-    access = tok["access_token"]
-    user = _me(access)
-    ug = _me_guilds(access)
-    user_guild_ids = {g["id"] for g in ug}
-    allowed = user_guild_ids & _bot_guild_ids()
-    if not allowed:
-        session.clear()
-        return jsonify({"error": "forbidden", "message": "No shared bot guilds"}), 403
+    token_json = _user_token(code)
+    if token_json is None:
+        # don’t 500; bounce back with an error flag so UI can show a message
+        return redirect(f'{cfg()["POST_LOGIN_REDIRECT"]}?auth=failed', 302)
 
-    if users_col is not None:
-        users_col.update_one(
-            {"discord_id": user["id"]},
-            {"$set": {
-                "discord_id": user["id"],
-                "username": user.get("username"),
-                "global_name": user.get("global_name"),
-                "discriminator": user.get("discriminator"),
-                "avatar": user.get("avatar"),
-                "last_login": __import__("datetime").datetime.now(__import__("datetime").timezone.utc),
-                "allowed_guild_ids": list(allowed)
-            }},
-            upsert=True
-        )
+    try:
+        token = token_json.get("access_token")
 
-    session["access_token"] = access
-    session["user"] = {"id": user["id"], "username": user.get("username")}
-    return redirect(cfg()["POST_LOGIN_REDIRECT"], 302)
+        # 3) fetch user
+        user_resp = requests.get("https://discord.com/api/users/@me",
+                                 headers={"Authorization": f"Bearer {token}"},
+                                 timeout=10)
+        if user_resp.status_code != 200:
+            current_app.logger.error("discord user fetch failed",
+                                     extra={"status": user_resp.status_code, "body": safe_body(user_resp)})
+            return redirect(f'{cfg()["POST_LOGIN_REDIRECT"]}?auth=failed', 302)
+
+        user = user_resp.json()
+
+        # 4) set session and redirect
+        session["user"] = {"id": user["id"], "username": user["username"]}
+        session["access_token"] = token
+        return redirect(cfg()["POST_LOGIN_REDIRECT"], 302)
+
+    except Exception as e:
+        current_app.logger.exception("oauth callback exception")
+        return redirect(f'{cfg()["POST_LOGIN_REDIRECT"]}?auth=failed', 302)
 
 
+def safe_body(resp):
+    # helper to avoid logging secrets; trims big payloads
+    try:
+        txt = resp.text
+        return txt[:500]
+    except Exception:
+        return "<unreadable>"
+
+
+@bp.get("/logout")
 @bp.post("/logout")
 def logout():
     session.clear()
-    return jsonify({"ok": True})
+
+    # mirror cookie attributes by environment
+    env = os.getenv("ENV", "").lower()
+    samesite = "None" if env == "prod" else "Lax"
+    secure = (env == "prod")
+
+    resp = redirect(cfg()["POST_LOGIN_REDIRECT"], 302)
+    resp.delete_cookie(
+        key=current_app.session_cookie_name,
+        path="/",
+        httponly=True,
+        samesite=samesite,
+        secure=secure,
+    )
+    return resp

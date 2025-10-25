@@ -10,7 +10,7 @@ export default function Dashboard({ me }) {
           Logout
         </button>
       </div>
-      <p>Servers using this bot:</p>
+      <p>Servers using this bot that you are a member of:</p>
       <ul>
         {(me.authorized_guilds ?? []).map((g) => (
           <li key={g.id}>{g.name}</li>
