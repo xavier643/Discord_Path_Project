@@ -86,18 +86,35 @@ VITE_API_BASE=https://<your-api-app>.fly.dev
 
 ## Running Locally
 
-API
+## API (Windows)
 
-- cd server
-- python -m venv venv
-- venv/Scripts/pip install -r requirements.txt
-- venv/Scripts/python app.py
+> Run everything from the **server** folder. The API has its own virtual environment.
+
+1. Open a new terminal (don’t reuse an old one).
+2. Verify no virtualenv is active:
+   - CMD: `echo %VIRTUAL_ENV%` → should be blank
+   - PowerShell: `$env:VIRTUAL_ENV` → should be empty
+3. `cd F:\wampLocalHost\Discord_Path_Project\server`
+4. Create a fresh env in this folder: `py -m venv .venv`
+5. Activate it: `.\.venv\Scripts\activate`
+   - Confirm: `echo %VIRTUAL_ENV%` (CMD) or `$env:VIRTUAL_ENV` (PS) shows a path ending in `\server\.venv`
+6. Install deps: `pip install -r requirements.txt`
+7. Run the API: `python app.py`
+
+> If you ever see a different env path (not ending in `\server\.venv`), run `deactivate` and repeat from step 2.
 
 ## Frontend
 
 - cd client
 - npm install
 - npm run dev
+
+### Running the Bot (Local)
+
+- cd bot
+- npm install _(first time only)_
+- node index.js
+- If using nodemon `npx nodemon index.js`
 
 ## Deploy
 
@@ -112,6 +129,22 @@ Frontend
 - cd client
 - npm run build
 - deploy dist/ to your static host
+
+Bot (Fly.io)
+
+one-time setup
+
+- cd bot
+- fly launch --no-deploy --name discord-path-bot --copy-config
+- fly secrets set DISCORD_BOT_TOKEN=YOUR_TOKEN DISCORD_CLIENT_ID=YOUR_CLIENT_ID
+
+deploy
+
+- fly deploy
+
+redeploy after changes
+
+- fly deploy
 
 ## API Endpoints
 
