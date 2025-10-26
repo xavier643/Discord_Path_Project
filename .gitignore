@@ -1,0 +1,25 @@
+# Node (frontend)
+node_modules/
+dist/
+build/
+
+# Python (backend & bot)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+venv/
+env/
+
+# Logs
+*.log
+
+# Environment
+.env*
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

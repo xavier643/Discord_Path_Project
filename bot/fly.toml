@@ -1,0 +1,12 @@
+app = "discord-path-bot"
+primary_region = "iad"
+
+[build]
+
+[processes]
+  app = "python main.py"
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1

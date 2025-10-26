@@ -1,0 +1,94 @@
+# Discord Path Project — Project Plan
+
+## Overview
+
+Discord Path Project is a full-stack application that uses Discord OAuth2 for authentication and will evolve into a platform supporting account management, MongoDB-based storage, and GraphQL APIs.
+The front end will use React (Vite + React Router + Apollo Client).
+The back end will use Flask and Apollo Server for GraphQL.
+
+## Goals
+
+- Complete and stabilize Discord login flow.
+- Replace REST endpoints with GraphQL.
+- Establish a clean front-end routing structure.
+- Implement MongoDB integration for persistent data.
+- Prepare the codebase for Fly.io backend and static hosting for frontend.
+- Document everything cleanly to avoid future setup confusion.
+
+## Technical Stack
+
+- Frontend: Vite, React, React Router, Apollo Client
+- Backend: Flask, Discord OAuth2, Gunicorn, MongoDB (via PyMongo)
+- Auth: Discord OAuth2 (login + guild verification)
+- DB: MongoDB
+- Deployment: Fly.io (API), Vercel/Netlify (frontend)
+
+## Core Features (MVP)
+
+- Discord login (identify + guilds)
+- User session handling
+- Basic dashboard UI after login
+- MongoDB integration
+- GraphQL endpoint and schema
+- Protected routes on front end
+- Clean logout handling
+- Deployment pipelines finalized
+
+## Secondary Features (Stretch)
+
+- Role-based access
+- Basic admin panel
+- Webhooks for Discord guild events
+- Advanced error handling
+- Front-end UI polish
+
+## Milestones
+
+### Phase 1 — Authentication
+
+- Discord OAuth2 login
+- /me route working
+- Session persistence
+- Redirects handled for local and production
+
+### Phase 2 — Database & API
+
+- Connect MongoDB
+- Add user persistence
+- Introduce GraphQL endpoint
+- Replace /me REST route with GraphQL query
+
+### Phase 3 — Frontend Routing & UI
+
+- Set up React Router
+- Add Login, Dashboard, and NotFound pages
+- Add protected route wrapper
+- Integrate Apollo Client
+
+### Phase 4 — Deployment
+
+- Finalize .env usage
+- Fly.io secrets set for production
+- Vite config set for API proxying
+- Front end deployed to static host
+
+### Environments
+
+- Local: Frontend on 3000, backend on 5000
+- Production: API on Fly.io, frontend on static host
+- Env variables managed with .env locally and Fly secrets in prod
+
+### Known Issues / Watch List
+
+- State mismatch can trigger invalid_state during login
+- Proxy config must match production URL
+- Mongo must be skipped locally if not running
+- Redirect URIs must be synced with Discord developer portal
+
+### Next Steps
+
+- Clean up front-end auth display
+- Create /dashboard route
+- Finalize GraphQL schema and connection
+- Integrate session handling with Mongo
+- Tighten security on OAuth tokens
