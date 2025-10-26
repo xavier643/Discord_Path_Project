@@ -9,7 +9,6 @@ import requests
 from flask import Blueprint, session, request, redirect, jsonify, current_app, make_response
 from db import users_col
 from functools import wraps
-from db import users_col
 
 bp = Blueprint("auth", __name__)
 API = "https://discord.com/api/v10"
@@ -163,10 +162,11 @@ def logout():
     env = os.getenv("ENV", "").lower()
     samesite = "None" if env == "prod" else "Lax"
     secure = (env == "prod")
+    cookie_name = current_app.config.get("SESSION_COOKIE_NAME", "session")
 
     resp = redirect(cfg()["POST_LOGIN_REDIRECT"], 302)
     resp.delete_cookie(
-        key=current_app.session_cookie_name,
+        key=cookie_name,
         path="/",
         httponly=True,
         samesite=samesite,

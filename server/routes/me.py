@@ -19,7 +19,8 @@ def me():
     if users_col is not None:
         users_col.update_one(
             {"discord_id": session["user"]["id"]},
-            {"$set": {"allowed_guild_ids": [g["id"] for g in filtered]}}
+            {"$set": {"allowed_guild_ids": [g["id"] for g in filtered]}},
+            upsert=True
         )
 
     return jsonify({

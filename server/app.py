@@ -1,17 +1,12 @@
 
-import os
-from routes.me import bp as me_bp
-from auth.auth_discord import bp as auth_bp
-import os
-import base64
-import secrets
-from flask import Flask
 from flask_cors import CORS
-from pathlib import Path
-from dotenv import load_dotenv
-
-load_dotenv(dotenv_path=Path(__file__).with_name('.env'), override=False)
-print("[debug] DISCORD_CLIENT_ID from env:", os.getenv("DISCORD_CLIENT_ID"))
+from flask import Flask
+import secrets
+import base64
+import preload_env
+from auth.auth_discord import bp as auth_bp
+from routes.me import bp as me_bp
+import os
 
 
 def create_app():
@@ -29,6 +24,7 @@ app = create_app()
 env = os.getenv("ENV", "").lower()
 
 app.config.update(
+    SESSION_COOKIE_NAME=os.getenv("SESSION_COOKIE_NAME", "session"),
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="None" if env == "prod" else "Lax",
     SESSION_COOKIE_SECURE=(env == "prod")
