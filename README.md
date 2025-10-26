@@ -19,58 +19,58 @@ Minimal full-stack template for a Discord-authenticated web app.
 
 ## Repo Structure
 
-Discord_Path_Project/
-├─ client/
-│ ├─ index.html
-│ └─ src/
-│ ├─ main.jsx
-│ ├─ App.jsx
-│ ├─ components/
-│ │ └─ RequireAuth.jsx
-│ ├─ pages/
-│ │ ├─ Login.jsx
-│ │ ├─ Dashboard.jsx
-│ │ └─ NotFound.jsx
-│ └─ lib/
-│ └─ api.js
-│ ├─ vite.config.js
-│ ├─ .env.development
-│ └─ .env.production
-│
-└─ server/
-├─ app.py
-├─ auth_discord.py
-├─ routes/
-│ └─ me.py
-├─ db.py
-├─ requirements.txt
-├─ Dockerfile
-├─ fly.toml
+Discord_Path_Project/  
+├─ client/  
+│ ├─ index.html  
+│ └─ src/  
+│ ├─ main.jsx  
+│ ├─ App.jsx  
+│ ├─ components/  
+│ │ └─ RequireAuth.jsx  
+│ ├─ pages/  
+│ │ ├─ Login.jsx  
+│ │ ├─ Dashboard.jsx  
+│ │ └─ NotFound.jsx  
+│ └─ lib/  
+│ └─ api.js  
+│ ├─ vite.config.js  
+│ ├─ .env.development  
+│ └─ .env.production  
+│  
+└─ server/  
+├─ app.py  
+├─ auth_discord.py  
+├─ routes/  
+│ └─ me.py  
+├─ db.py  
+├─ requirements.txt  
+├─ Dockerfile  
+├─ fly.toml  
 └─ .env
 
 ## Environment Variables
 
 ### Backend (server/.env)
 
-PORT=5000
-SESSION_SECRET=<random>
-ALLOWED_ORIGIN=http://localhost:3000
-POST_LOGIN_REDIRECT=http://localhost:3000
-DISCORD_CLIENT_ID=<Application ID>
-DISCORD_CLIENT_SECRET=<Client Secret>
-DISCORD_BOT_TOKEN=<Bot Token>
-DISCORD_REDIRECT_URI=http://localhost:5000/auth/discord/callback
+PORT=5000  
+SESSION_SECRET=<random>  
+ALLOWED_ORIGIN=http://localhost:3000  
+POST_LOGIN_REDIRECT=http://localhost:3000  
+DISCORD_CLIENT_ID=<Application ID>  
+DISCORD_CLIENT_SECRET=<Client Secret>  
+DISCORD_BOT_TOKEN=<Bot Token>  
+DISCORD_REDIRECT_URI=http://localhost:5000/auth/discord/callback  
 SKIP_MONGO=1
 
-MONGO_URL=...
+MONGO_URL=...  
 MONGO_DB=discord_path
 
 ### Frontend
 
-client/.env.development
+client/.env.development  
 VITE_API_BASE=
 
-client/.env.production
+client/.env.production  
 VITE_API_BASE=https://<your-api-app>.fly.dev
 
 ## Discord Developer Portal Setup
