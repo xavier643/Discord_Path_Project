@@ -13,6 +13,8 @@ from functools import wraps
 bp = Blueprint("auth", __name__)
 API = "https://discord.com/api/v10"
 
+frontend = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
 
 def cfg():
     """Read env at call-time (no stale globals)."""
@@ -100,6 +102,13 @@ def login():
         "state": state,
         "prompt": "none",
     }
+
+    # store where to send the user after successful login
+    next_path = request.args.get("next") or cfg()["POST_LOGIN_REDIRECT"]
+    if not next_path.startswith("/"):
+        next_path = cfg()["POST_LOGIN_REDIRECT"]
+    session["post_login_redirect"] = next_path
+
     return redirect(f"https://discord.com/oauth2/authorize?{urlencode(params)}", 302)
 
 
@@ -118,7 +127,10 @@ def callback():
     token_json = _user_token(code)
     if token_json is None:
         # don’t 500; bounce back with an error flag so UI can show a message
-        return redirect(f'{cfg()["POST_LOGIN_REDIRECT"]}?auth=failed', 302)
+        redirect_to = session.pop("post_login_redirect", cfg()["POST_LOGIN_REDIRECT"])
+        if not redirect_to.startswith("/"):
+            redirect_to = cfg()["POST_LOGIN_REDIRECT"]
+        return redirect(f"{frontend}{redirect_to}?auth=failed", 302)
 
     try:
         token = token_json.get("access_token")
@@ -130,18 +142,27 @@ def callback():
         if user_resp.status_code != 200:
             current_app.logger.error("discord user fetch failed",
                                      extra={"status": user_resp.status_code, "body": safe_body(user_resp)})
-            return redirect(f'{cfg()["POST_LOGIN_REDIRECT"]}?auth=failed', 302)
+            redirect_to = session.pop("post_login_redirect", cfg()["POST_LOGIN_REDIRECT"])
+            if not redirect_to.startswith("/"):
+                redirect_to = cfg()["POST_LOGIN_REDIRECT"]
+            return redirect(f"{frontend}{redirect_to}?auth=failed", 302)
 
         user = user_resp.json()
 
         # 4) set session and redirect
         session["user"] = {"id": user["id"], "username": user["username"]}
         session["access_token"] = token
-        return redirect(cfg()["POST_LOGIN_REDIRECT"], 302)
+        redirect_to = session.pop("post_login_redirect", cfg()["POST_LOGIN_REDIRECT"])
+        if not redirect_to.startswith("/"):
+            redirect_to = cfg()["POST_LOGIN_REDIRECT"]
+        return redirect(f"{frontend}{redirect_to}", 302)
 
     except Exception as e:
         current_app.logger.exception("oauth callback exception")
-        return redirect(f'{cfg()["POST_LOGIN_REDIRECT"]}?auth=failed', 302)
+        redirect_to = session.pop("post_login_redirect", cfg()["POST_LOGIN_REDIRECT"])
+        if not redirect_to.startswith("/"):
+            redirect_to = cfg()["POST_LOGIN_REDIRECT"]
+        return redirect(f"{frontend}{redirect_to}?auth=failed", 302)
 
 
 def safe_body(resp):

@@ -1,7 +1,12 @@
 import React from "react";
 import { logout } from "../lib/api";
+import { useOutletContext } from "react-router-dom";
 
-export default function Dashboard({ me }) {
+export default function Dashboard() {
+  const { me } = useOutletContext();
+
+  if (!me?.user) return <div>Loading...</div>;
+
   return (
     <div style={wrap}>
       <div style={row}>

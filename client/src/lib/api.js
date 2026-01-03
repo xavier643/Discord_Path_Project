@@ -35,7 +35,8 @@ export async function apiDelete(path, body) {
 }
 
 export function loginWithDiscord() {
-  window.location.href = `${API_BASE}/auth/discord/login`;
+  const next = encodeURIComponent("/app/dashboard");
+  window.location.href = `${API_BASE}/auth/discord/login?next=${next}`;
 }
 
 export async function logout() {
@@ -44,5 +45,5 @@ export async function logout() {
   } catch {
     console.error("failed to logout");
   }
-  window.location.reload();
+  window.location.href = "/";
 }
