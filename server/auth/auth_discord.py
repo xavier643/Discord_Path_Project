@@ -71,6 +71,62 @@ def _me_guilds(token: str):
     return r.json()
 
 
+def _me_roles(token: str, guild_id: str):
+    h = {"Authorization": f"Bearer {token}"}
+    r = requests.get(f"{API}/users/@me/guilds/{guild_id}/member", headers=h, timeout=15)
+    r.raise_for_status()
+    return r.json()
+
+
+def _member_roles_bot(guild_id: str, user_id: str):
+    C = cfg()
+    h = {"Authorization": f"Bot {C['DISCORD_BOT_TOKEN']}"}
+    r = requests.get(f"{API}/guilds/{guild_id}/members/{user_id}", headers=h, timeout=15)
+    r.raise_for_status()
+    return r.json()  # includes "roles": [role_id, ...]
+
+
+def _guild_roles_bot(guild_id: str):
+    C = cfg()
+    h = {"Authorization": f"Bot {C['DISCORD_BOT_TOKEN']}"}
+    r = requests.get(f"{API}/guilds/{guild_id}/roles", headers=h, timeout=15)
+    r.raise_for_status()
+    return r.json()
+
+
+def is_guild_owner(guild_id: str, user_id: str):
+    C = cfg()
+    h = {"Authorization": f"Bot {C['DISCORD_BOT_TOKEN']}"}
+    r = requests.get(f"{API}/guilds/{guild_id}", headers=h, timeout=15)
+    r.raise_for_status()
+    return r.json().get("owner_id") == user_id
+
+
+def _member_roles_with_highest(guild_id: str, user_id: str):
+    member = _member_roles_bot(guild_id, user_id)          # has "roles": [ids]
+    guild_roles = _guild_roles_bot(guild_id)               # has [{id,name,position,...}]
+
+    role_ids = set(member.get("roles", []))
+    id_to_role = {r["id"]: r for r in guild_roles}
+
+    # Build full role list for THIS member
+    roles = []
+    for rid in role_ids:
+        r = id_to_role.get(rid)
+        if not r:
+            continue
+        roles.append({"id": r["id"], "name": r["name"], "position": r.get("position", 0)})
+
+    # Sort highest -> lowest by Discord position, deterministic tie-break by id
+    roles.sort(key=lambda x: (x["position"], x["id"]), reverse=True)
+
+    highest = roles[0] if roles else None
+
+    is_owner = is_guild_owner(guild_id, user_id)
+
+    return {"roles": roles, "highest": highest, "is_owner": is_owner}
+
+
 def login_required(fn):
     C = cfg()
 

@@ -5,49 +5,53 @@ import { useOutletContext } from "react-router-dom";
 export default function Dashboard() {
   const { me } = useOutletContext();
 
-  if (!me?.user) return <div>Loading...</div>;
+  if (!me?.user) {
+    return (
+      <LoadingCard
+        title="Loading dashboard…"
+        message="Fetching your Discord data."
+      />
+    );
+  }
+
+  console.log(me);
+  console.log(me.roles);
+  console.log(me.roles["1421220625044738170"]);
+  console.log(me.roles["1421220625044738170"].roles);
+
+  for (const role in me.roles["1421220625044738170"].roles) {
+    console.log(me.roles["1421220625044738170"].roles[role].name);
+  }
 
   return (
-    <div style={wrap}>
-      <div style={row}>
-        <h1 style={{ margin: 0 }}>Hi, {me.user.username}</h1>
-        <button style={secondary} onClick={logout}>
+    <div className="container">
+      <div className="dashboard__header">
+        <h1 className="dashboard__title">Hi, {me.user.username}</h1>
+        <button className="btn btn-secondary" onClick={logout}>
           Logout
         </button>
       </div>
-      <p>Servers using this bot that you are a member of:</p>
-      <ul>
-        <ul>
-          {(me.authorized_guilds ?? []).length > 0 ? (
-            me.authorized_guilds.map((g) => <li key={g.id}>{g.name}</li>)
-          ) : (
-            <li>No authorized guilds</li>
-          )}
+
+      <p className="muted">Servers using this bot that you are a member of:</p>
+      {/* create list of guilds, if any. Then create a list of roles within said guild */}
+      {me.authorized_guilds.length === 0 ? (
+        <p>No authorized servers found.</p>
+      ) : (
+        <ul className="list">
+          {me.authorized_guilds.map((g) => (
+            <li key={g.id}>
+              {g.name}
+              <ul className="list">
+                {me.roles?.[g.id]?.roles?.length > 0 ? (
+                  me.roles[g.id].roles.map((r) => <li key={r.id}>{r.name}</li>)
+                ) : (
+                  <li className="muted">No roles found.</li>
+                )}
+              </ul>
+            </li>
+          ))}
         </ul>
-      </ul>
+      )}
     </div>
   );
 }
-
-const wrap = {
-  maxWidth: 720,
-  margin: "40px auto",
-  fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial",
-};
-
-const row = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  marginBottom: "1rem",
-};
-
-const secondary = {
-  background: "#eef2ff",
-  color: "#111827",
-  border: 0,
-  borderRadius: 10,
-  padding: "8px 12px",
-  fontWeight: 600,
-  cursor: "pointer",
-};

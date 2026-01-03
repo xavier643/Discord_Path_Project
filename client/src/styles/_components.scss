@@ -1,0 +1,206 @@
+/* styles/_components.scss */
+
+.card {
+  max-width: 520px;
+  margin: 40px auto;
+  padding: 24px;
+
+  background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.03),
+      transparent 120%
+    ),
+    var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  text-align: center;
+
+  p {
+    color: var(--muted);
+  }
+}
+
+.btn {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.05s ease, background 0.15s ease;
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &.btn-primary {
+    background: var(--primary);
+    color: white;
+
+    &:hover {
+      background: var(--primary-hover);
+    }
+  }
+
+  &.btn-secondary {
+    background: var(--secondary);
+    color: var(--text);
+    border: 1px solid var(--border);
+
+    &:hover {
+      background: var(--secondary-hover);
+    }
+  }
+}
+
+.list {
+  padding-left: 18px;
+
+  li {
+    margin: 6px 0;
+  }
+}
+
+.loading-dots {
+  width: 52px;
+  height: 12px;
+  margin: 16px auto 0;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(229, 231, 235, 0.35),
+    transparent
+  );
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-60%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(229, 231, 235, 0.75),
+      transparent
+    );
+    animation: loading-sweep 1s infinite;
+  }
+}
+
+@keyframes loading-sweep {
+  0% {
+    transform: translateX(-60%);
+  }
+  100% {
+    transform: translateX(60%);
+  }
+}
+
+/* Branding chunk is a reusable UI element */
+.brand {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-weight: 800;
+}
+
+/* Nav styling is “component-ish” (a reusable control cluster) */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  a {
+    color: var(--muted);
+    text-decoration: none;
+    padding: 8px 10px;
+    border-radius: 10px;
+
+    &:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+    }
+  }
+}
+
+/* Hero text styling = component-ish typography */
+.hero__title {
+  font-size: clamp(32px, 4vw, 46px);
+  line-height: 1.1;
+  margin: 0 0 12px;
+}
+
+.hero__subtitle {
+  max-width: 60ch;
+  margin: 0 auto 20px;
+  color: var(--muted);
+}
+
+.hero__note {
+  margin: 0;
+}
+
+.footer__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer__icons {
+  display: flex;
+  gap: 10px;
+}
+
+.iconlink {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+}
+
+.footer__middle {
+  text-align: center;
+}
+
+.footer__label {
+  font-size: 12px;
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+
+.footer__stack {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.footer__right {
+  text-align: right;
+}

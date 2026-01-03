@@ -1,0 +1,22 @@
+/* styles/_variables.scss */
+
+:root {
+  color-scheme: dark;
+
+  --bg: #0b0f19;
+  --surface: #111827;
+  --surface-2: #0f172a;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: #243041;
+
+  --shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+
+  --primary: #5865f2;
+  --primary-hover: #4b57e6;
+
+  --secondary: #1f2937;
+  --secondary-hover: #253244;
+
+  --radius: 14px;
+}

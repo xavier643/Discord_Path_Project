@@ -1,6 +1,6 @@
 # server/routes/me.py
 from flask import Blueprint, jsonify, session
-from auth.auth_discord import login_required, _me_guilds, _bot_guild_ids
+from auth.auth_discord import login_required, _me_guilds, _bot_guild_ids, _member_roles_with_highest
 from db import users_col
 
 import requests
@@ -22,6 +22,8 @@ def me():
     user_guilds = _me_guilds(access)
     allowed_ids = _bot_guild_ids() & {g["id"] for g in user_guilds}
     filtered = [{"id": g["id"], "name": g["name"]} for g in user_guilds if g["id"] in allowed_ids]
+    user_id = session["user"]["id"]
+    roles = {g["id"]: _member_roles_with_highest(g["id"], user_id) for g in filtered}
 
     # Optionally keep allowed guilds current in DB
     if users_col is not None:
@@ -33,5 +35,6 @@ def me():
 
     return jsonify({
         "user": session["user"],
-        "authorized_guilds": filtered
+        "authorized_guilds": filtered,
+        "roles": roles
     })
