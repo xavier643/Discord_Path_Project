@@ -5,34 +5,31 @@ export default function Home() {
   const navigate = useNavigate();
 
   return (
-    <div style={card}>
-      <h1>Welcome to my page</h1>
-      <p>This is a simple public homepage.</p>
+    <section className="hero" id="hero">
+      <div className="hero__inner">
+        <h1 className="hero__title">Hi, I'm Xavier</h1>
+        <p className="hero__subtitle">
+          I build backend systems and I'm leveling up my front end. This site is
+          my playground and portfolio.
+        </p>
 
-      <button style={primary} onClick={() => navigate("/app/dashboard")}>
-        View Example Project
-      </button>
-    </div>
+        <div className="hero__actions">
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate("/app/dashboard")}
+          >
+            View App
+          </button>
+          {/* <a className="btn btn-secondary" href="#projects">
+            Projects
+          </a> */}
+        </div>
+
+        <p className="hero__note muted">
+          Work in progress — I'm actively improving layout, styling, and
+          content.
+        </p>
+      </div>
+    </section>
   );
 }
-
-const card = {
-  maxWidth: 520,
-  margin: "40px auto",
-  padding: 24,
-  border: "1px solid #e5e7eb",
-  borderRadius: 14,
-  boxShadow: "0 2px 10px rgba(0,0,0,.06)",
-  fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial",
-  textAlign: "center",
-};
-
-const primary = {
-  background: "#5865F2",
-  color: "#fff",
-  border: 0,
-  borderRadius: 10,
-  padding: "10px 14px",
-  fontWeight: 600,
-  cursor: "pointer",
-};

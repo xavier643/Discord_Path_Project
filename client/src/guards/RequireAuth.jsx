@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useLocation, Navigate } from "react-router-dom";
 import { apiGet } from "../lib/api";
 
+import LoadingCard from "../components/LoadingCard";
+
 export default function RequireAuth({ children }) {
   const [state, setState] = useState({ loading: true, me: null });
   const loc = useLocation();
@@ -21,9 +23,18 @@ export default function RequireAuth({ children }) {
     };
   }, [loc.key]);
 
-  if (state.loading)
-    return <div style={{ padding: 24 }}>Checking session…</div>;
-  if (!state.me) return <Navigate to="/login" replace />;
+  if (state.loading) {
+    return (
+      <LoadingCard
+        title="Checking session…"
+        message="Verifying authentication."
+      />
+    );
+  }
+
+  if (!state.me) {
+    return <Navigate to="/login" replace />;
+  }
 
   return React.cloneElement(children, { me: state.me });
 }

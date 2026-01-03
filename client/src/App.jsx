@@ -6,14 +6,18 @@ import Login from "./pages/Login.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
-import RequireAuth from "./components/RequireAuth.jsx";
+import RequireAuth from "./guards/RequireAuth.jsx";
 import ProtectedLayout from "./layouts/ProtectedLayout.jsx";
+import PublicLayout from "./layouts/PublicLayout.jsx";
 
 export default function App() {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<Home />} />
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<Home />} />
+      </Route>
+
       <Route path="/login" element={<Login />} />
 
       {/* Protected route group */}
@@ -28,9 +32,6 @@ export default function App() {
         {/* /app -> /app/dashboard */}
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
-
-        {/* add more protected pages here */}
-        {/* <Route path="settings" element={<Settings />} /> */}
       </Route>
 
       {/* Catch-all */}
