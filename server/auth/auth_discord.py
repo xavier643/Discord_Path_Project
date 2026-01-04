@@ -67,18 +67,42 @@ def _me_guilds(token: str):
 def _me_member(token: str, guild_id: str):
     h = {"Authorization": f"Bearer {token}"}
     r = requests.get(f"{API}/users/@me/guilds/{guild_id}/member", headers=h, timeout=15)
-    # If they aren't a member, Discord will typically 403/404 depending on context.
+
     if r.status_code != 200:
+        current_app.logger.warning(
+            f"discord me_member failed status={r.status_code} "
+            f"retry_after={r.headers.get('Retry-After')} "
+            f"remaining={r.headers.get('X-RateLimit-Remaining')} "
+            f"reset_after={r.headers.get('X-RateLimit-Reset-After')} "
+            f"body={safe_body(r)}"
+        )
         return None
+
     return r.json()
+
+
+_roles_cache = {}
 
 
 def _guild_roles_bot(guild_id: str):
+    now = time.time()
+    cached = _roles_cache.get(guild_id)
+    if cached and cached[0] > now:
+        return cached[1]
+
     h = {"Authorization": f"Bot {cfg()['DISCORD_BOT_TOKEN']}"}
     r = requests.get(f"{API}/guilds/{guild_id}/roles", headers=h, timeout=15)
-    if r.status_code != 200:
-        return []
-    return r.json()
+
+    if r.status_code == 200:
+        roles = r.json()
+        _roles_cache[guild_id] = (now + 120, roles)  # 2 min TTL
+        return roles
+
+    # log + return stale cache if present
+    current_app.logger.warning(f"... status={r.status_code} body={r.text[:200]}")
+    if cached:
+        return cached[1]
+    return []
 
 
 def login_required(fn):

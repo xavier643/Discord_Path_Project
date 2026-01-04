@@ -58,7 +58,15 @@ def me():
     roles = []
 
     if authorized:
-        member = _me_member(access, target_guild_id)
+        if not member:
+            return jsonify({
+                "user": session["user"],
+                "authorized": True,
+                "guild": {"id": target_guild_id},
+                "roles": [],
+                "error": "member_fetch_failed"
+            }), 200
+
         role_ids = set(member.get("roles", [])) if member else set()
 
         all_roles = _guild_roles_bot(target_guild_id)
